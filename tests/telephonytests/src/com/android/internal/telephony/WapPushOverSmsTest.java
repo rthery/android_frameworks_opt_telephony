@@ -226,6 +226,23 @@ public class WapPushOverSmsTest extends TelephonyTest {
     }
 
     @Test @SmallTest
+    public void testDispatchWapPdu_hugePositiveHeaderLength_failsGracefully() {
+        doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
+        doReturn((long) Integer.MAX_VALUE).when(mWspTypeDecoder).getValue32();
+        doReturn(5).when(mWspTypeDecoder).getDecodedDataLength();
+
+        byte[] pdu = {
+                (byte) 0xFF,
+                (byte) 0x06,
+                (byte) 0x87, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x7F,
+                (byte) 0x00
+        };
+
+        assertEquals(Telephony.Sms.Intents.RESULT_SMS_GENERIC_ERROR,
+                mWapPushOverSmsUT.dispatchWapPdu(pdu, null, mInboundSmsHandler, null, 0, 0L));
+    }
+
+    @Test @SmallTest
     public void testIsWapPushForMms_malformedHeaderLength_returnsFalse() {
         doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
         doReturn(4294967295L).when(mWspTypeDecoder).getValue32();

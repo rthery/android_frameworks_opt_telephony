@@ -214,8 +214,15 @@ public class WapPushOverSms implements ServiceConnection {
                 result.statusCode = Intents.RESULT_SMS_GENERIC_ERROR;
                 return result;
             }
-            int headerLength = (int) pduDecoder.getValue32();
+            long rawHeaderLength = pduDecoder.getValue32();
             index += pduDecoder.getDecodedDataLength();
+            // An oversized length would throw OutOfMemoryError, which the catch below misses.
+            if (rawHeaderLength > pdu.length - index) {
+                if (DBG) Rlog.w(TAG, "Received PDU. Header Length too large: " + rawHeaderLength);
+                result.statusCode = Intents.RESULT_SMS_GENERIC_ERROR;
+                return result;
+            }
+            int headerLength = (int) rawHeaderLength;
 
             int headerStartIndex = index;
 
