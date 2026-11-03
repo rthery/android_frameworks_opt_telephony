@@ -1549,6 +1549,27 @@ public class PhoneSwitcherTest extends TelephonyTest {
     }
 
     @Test
+    public void testSingleSimAllowData_simActivatedAfterBoot_notifiesActiveDataSub()
+            throws Exception {
+        mActiveModemCount = 1;
+        mSupportedModemCount = 1;
+        initialize();
+        addInternetNetworkRequest(null, 50);
+
+        // SIM becomes active after boot, before it is the default data sub.
+        setSlotIndexToSubId(0, 1);
+        mSubChangedListener.onSubscriptionsChanged();
+        processAllMessages();
+        clearInvocations(mTelephonyRegistryManager);
+
+        setDefaultDataSubId(1);
+
+        verify(mCommandsInterface0, never()).setDataAllowed(anyBoolean(), any());
+        verify(mTelephonyRegistryManager).notifyActiveDataSubIdChanged(eq(1));
+        assertEquals(1, mPhoneSwitcherUT.getActiveDataSubId());
+    }
+
+    @Test
     public void testMultiSimConfigChange() throws Exception {
         doReturn(true).when(mMockRadioConfig).isSetPreferredDataCommandSupported();
         mActiveModemCount = 1;

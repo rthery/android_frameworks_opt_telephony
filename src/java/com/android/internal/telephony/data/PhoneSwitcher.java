@@ -1269,6 +1269,11 @@ public class PhoneSwitcher extends Handler {
             sb.append(" preferred data phoneId ").append(oldPreferredDataPhoneId)
                     .append("->").append(mPreferredDataPhoneId);
             diffDetected = true;
+            // Single SIM ALLOW_DATA sends no modem command, so onDdsSwitchResponse won't notify
+            if (mActiveModemCount == 1 && mHalCommandToUse != HAL_COMMAND_PREFERRED_DATA
+                    && oldPreferredDataSubId != mPreferredDataSubId.get()) {
+                notifyPreferredDataSubIdChanged();
+            }
         } else if (oldPreferredDataSubId != mPreferredDataSubId.get()) {
             logl("SIM refresh, notify dds change");
             // Inform connectivity about the active data phone
